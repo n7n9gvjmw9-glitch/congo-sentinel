@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#173b2b">
+<title>CONGO SENTINEL — Protection civile</title>
+<style>
+:root{--green:#173b2b;--gold:#d5ad54;--paper:#f2f4ef;--ink:#17231c;--muted:#66736a;--line:#dce3da}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:var(--green);color:white;padding:25px max(20px,calc((100% - 1050px)/2));border-bottom:4px solid var(--gold)}
+header small{letter-spacing:.14em;color:#e6d5a8}h1{margin:8px 0;font-size:clamp(25px,5vw,38px)}header p{margin:0;color:#e1e9e2}
+main{max-width:1050px;margin:24px auto;padding:0 16px}.notice{background:#fff8e8;border-left:4px solid var(--gold);padding:13px 16px;border-radius:8px;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}.panel{background:white;border:1px solid var(--line);border-radius:13px;padding:18px;box-shadow:0 3px 12px #1c39200a}
+h2{font-size:19px;margin:0 0 14px}label{display:block;font-weight:650;font-size:14px;margin:12px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5cb;border-radius:8px;font:inherit;background:white}textarea{min-height:88px;resize:vertical}button{border:0;border-radius:8px;padding:11px 15px;font:700 15px system-ui;cursor:pointer;background:var(--green);color:white;margin-top:13px}button.secondary{background:#e8eee8;color:var(--green)}.stats{display:flex;gap:10px;flex-wrap:wrap}.stat{background:#eef3ed;border-radius:10px;padding:12px 16px;min-width:110px;flex:1}.stat strong{display:block;font-size:25px;color:var(--green)}.muted{color:var(--muted);font-size:13px}.report{border-top:1px solid var(--line);padding:12px 0}.tag{display:inline-block;border-radius:99px;padding:3px 9px;background:#e8eee8;font-size:12px;font-weight:700}.danger{background:#f9e9e6;color:#8c3025}.empty{color:var(--muted);padding:15px 0}footer{max-width:1050px;margin:28px auto;padding:18px 16px;color:var(--muted);font-size:13px}
+</style></head>
+<body>
+<header><small>RÉPUBLIQUE DÉMOCRATIQUE DU CONGO · PROTOTYPE CIVIL</small><h1>CONGO SENTINEL</h1><p>Veille citoyenne, signalement d’incidents et coordination de protection civile</p></header>
+<main>
+<div class="notice"><strong>Prototype de démonstration.</strong> Les signalements restent sur cet appareil. Aucun service d’urgence n’est contacté et aucune donnée n’est transmise. En cas de danger immédiat, contactez les services locaux compétents.</div>
+<section class="panel" style="margin-bottom:16px"><h2>Tableau de bord local</h2><div class="stats"><div class="stat"><strong id="total">0</strong><span class="muted">Signalements</span></div><div class="stat"><strong id="open">0</strong><span class="muted">À examiner</span></div><div class="stat"><strong id="closed">0</strong><span class="muted">Clôturés</span></div></div></section>
+<div class="grid"><section class="panel"><h2>Déclarer un incident civil</h2><form id="form">
+<label for="province">Province</label><select id="province" required><option value="">Choisir…</option></select>
+<label for="place">Commune / localité (sans adresse privée)</label><input id="place" maxlength="90" required placeholder="Ex. Gombe, Kinshasa">
+<label for="kind">Type d’incident</label><select id="kind" required><option value="">Choisir…</option><option>Inondation</option><option>Incendie</option><option>Accident</option><option>Infrastructure endommagée</option><option>Besoin humanitaire</option><option>Autre incident civil</option></select>
+<label for="severity">Priorité estimée</label><select id="severity"><option>Normale</option><option>Élevée</option><option>Urgente</option></select>
+<label for="details">Description non sensible</label><textarea id="details" maxlength="600" placeholder="Décrire les faits observés, sans noms ni données personnelles."></textarea>
+<button type="submit">Enregistrer sur cet appareil</button></form></section>
+<section class="panel"><h2>Registre des signalements</h2><p class="muted">Données de démonstration locales, modifiables uniquement dans ce navigateur.</p><div id="reports"><p class="empty">Aucun signalement pour le moment.</p></div><button class="secondary" id="export">Exporter en CSV</button> <button class="secondary" id="clear">Effacer les données locales</button></section></div>
+</main><footer>CONGO SENTINEL · Version prototype · Ne pas utiliser pour le renseignement militaire, le ciblage, la surveillance de personnes ou la conduite d’opérations. Une mise en service institutionnelle exige validation juridique, sécurité, gouvernance des données et infrastructure dédiée.</footer>
+<script>
+const provinces=["Kinshasa","Kongo Central","Kwango","Kwilu","Mai-Ndombe","Kasaï","Kasaï-Central","Kasaï-Oriental","Lomami","Sankuru","Maniema","Sud-Kivu","Nord-Kivu","Ituri","Haut-Uélé","Bas-Uélé","Tshopo","Mongala","Nord-Ubangi","Sud-Ubangi","Équateur","Tshuapa","Haut-Lomami","Lualaba","Haut-Katanga","Tanganyika"];
+const $=id=>document.getElementById(id);provinces.forEach(p=>{let o=document.createElement("option");o.textContent=p;$("province").append(o)});
+let records=[];try{records=JSON.parse(localStorage.getItem("cs_reports")||"[]")}catch(e){records=[]}
+function save(){localStorage.setItem("cs_reports",JSON.stringify(records));render()}
+function render(){$("total").textContent=records.length;$("open").textContent=records.filter(x=>x.status!=="Clôturé").length;$("closed").textContent=records.filter(x=>x.status==="Clôturé").length;let root=$("reports");root.innerHTML="";if(!records.length){root.innerHTML='<p class="empty">Aucun signalement pour le moment.</p>';return}records.slice().reverse().forEach(r=>{let d=document.createElement("div");d.className="report";let t=document.createElement("strong");t.textContent=r.kind+" · "+r.place;let p=document.createElement("p");p.className="muted";p.textContent=r.province+" · "+r.severity+" · "+r.date;let s=document.createElement("span");s.className="tag"+(r.severity==="Urgente"?" danger":"");s.textContent=r.status;let b=document.createElement("button");b.className="secondary";b.textContent=r.status==="Clôturé"?"Rouvrir":"Clôturer";b.onclick=()=>{r.status=r.status==="Clôturé"?"À examiner":"Clôturé";save()};d.append(t,p,s,b);root.append(d)})}
+$("form").addEventListener("submit",e=>{e.preventDefault();records.push({province:$("province").value,place:$("place").value.trim(),kind:$("kind").value,severity:$("severity").value,details:$("details").value.trim(),status:"À examiner",date:new Date().toLocaleString("fr-FR")});save();e.target.reset()});
+$("export").onclick=()=>{let rows=[["province","localite","type","priorite","description","statut","date"],...records.map(r=>[r.province,r.place,r.kind,r.severity,r.details,r.status,r.date])];let csv=rows.map(row=>row.map(v=>'"'+String(v??"").replaceAll('"','""')+'"').join(";")).join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));a.download="signalements-civils.csv";a.click();URL.revokeObjectURL(a.href)};
+$("clear").onclick=()=>{if(confirm("Effacer tous les signalements enregistrés sur cet appareil ?")){records=[];save()}};
+render();
+</script></body></html>
